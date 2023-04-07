@@ -1,0 +1,25 @@
+import "jobs_table.malloy"
+
+source: jobs is jobs_table + {
+  rename: 
+    bytes_billed is total_bytes_billed
+    bytes_processed is total_bytes_processed
+    slot_ms is total_slot_ms
+
+  dimension: 
+    billed_gb is bytes_billed / (1024*1024*1024)
+
+  measure:
+    job_count is count()
+    query_count is job_count {? job_type = 'QUERY'}
+    total_billed_gb is billed_gb.sum()
+    total_slot_seconds is slot_ms.sum()/1000
+    total_slot_minutes is total_slot_seconds/60
+    user_count is count(distinct user_email)
+    time_range is concat(min(start_time)::date:: string, ' to ',  max(start_time)::date::string)
+    percent_cached_query is query_count {? cache_hit} / query_count * 100
+  query: cached is {
+    group_by: cache_hit
+    aggregate: query_count, total_billed_gb
+  }
+}
