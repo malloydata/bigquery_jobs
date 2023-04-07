@@ -8,10 +8,11 @@ source: jobs is jobs_table + {
 
   dimension: 
     billed_gb is bytes_billed / (1024*1024*1024)
+    is_query is job_type = 'QUERY'
 
   measure:
     job_count is count()
-    query_count is job_count {? job_type = 'QUERY'}
+    query_count is job_count {? is_query }
     total_billed_gb is billed_gb.sum()
     total_slot_seconds is slot_ms.sum()/1000
     total_slot_minutes is total_slot_seconds/60

@@ -3,3 +3,4 @@ Model for information_schema.jobs in bigquery.  To run this model, Modify the [j
 
 ## Notebooks
 * [Overall Statistics](overall.malloynb)
+* [User Statistics](by_user.malloynb)

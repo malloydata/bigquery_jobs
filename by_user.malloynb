@@ -1,0 +1,38 @@
+[
+  {
+    "kind": 1,
+    "language": "markdown",
+    "value": "# By User\nWhich users are doing what?",
+    "metadata": {}
+  },
+  {
+    "kind": 2,
+    "language": "malloy",
+    "value": "import \"jobs.malloy\"",
+    "metadata": {}
+  },
+  {
+    "kind": 1,
+    "language": "markdown",
+    "value": "## Basic User level Statistics",
+    "metadata": {}
+  },
+  {
+    "kind": 2,
+    "language": "malloy",
+    "value": "query: jobs -> {\n  group_by: user_email\n  aggregate: \n    total_billed_gb\n    percent_of_gb_billed is total_billed_gb/all(total_billed_gb)* 100\n    total_slot_minutes\n    query_count\n    percent_cached_query\n    time_range\n}",
+    "metadata": {}
+  },
+  {
+    "kind": 1,
+    "language": "markdown",
+    "value": "## Users in detail",
+    "metadata": {}
+  },
+  {
+    "kind": 2,
+    "language": "malloy",
+    "value": "query: jobs -> {\n  where: is_query\n  group_by: user_email\n  aggregate: \n    total_billed_gb\n    percent_of_gb_billed is total_billed_gb/all(total_billed_gb)* 100\n  nest: dataset_bytes_bar_chart is {\n    group_by: referenced_tables.dataset_id\n    aggregate: \n      total_billed_gb\n      query_count\n  }\n  nest: dataset_queries_bar_chart is {\n    where: referenced_tables.dataset_id != null\n    group_by: referenced_tables.dataset_id\n    aggregate: \n      query_count\n      total_billed_gb\n  }\n}\n// --! style dashboard",
+    "metadata": {}
+  }
+]
