@@ -5,22 +5,73 @@ source: jobs is jobs_table + {
     bytes_billed is total_bytes_billed
     bytes_processed is total_bytes_processed
     slot_ms is total_slot_ms
+    sql_query is query
+
 
   dimension: 
     billed_gb is bytes_billed / (1024*1024*1024)
     is_query is job_type = 'QUERY'
+    slot_seconds is (slot_ms/1000)
+    elapsed_seconds is (unix_millis(end_time)::number - unix_millis(start_time)::number)/1000
+    query_hash is to_base64(md5(sql_query))::string
 
   measure:
     job_count is count()
     query_count is job_count {? is_query }
+    distinct_query_count is count(distinct sql_query)
     total_billed_gb is billed_gb.sum()
     total_slot_seconds is slot_ms.sum()/1000
     total_slot_minutes is total_slot_seconds/60
     user_count is count(distinct user_email)
     time_range is concat(min(start_time)::date:: string, ' to ',  max(start_time)::date::string)
     percent_cached_query is query_count {? cache_hit} / query_count * 100
+    stage_count is timeline.count()
+    percent_of_gb_billed is total_billed_gb/all(total_billed_gb)*100
+    
+
   query: cached is {
     group_by: cache_hit
     aggregate: query_count, total_billed_gb
+  }
+
+  query: query_detail is {
+    where: is_query
+    group_by: 
+      job_id
+      user_email
+      start_time
+      billed_gb
+      slot_seconds 
+      elapsed_seconds
+    nest: data_sets_list is {
+      group_by: referenced_tables.dataset_id
+    }
+    aggregate: 
+      stage_count
+  }
+
+  query: by_email is {
+    group_by: user_email
+    aggregate: 
+      total_billed_gb
+      query_count 
+  }
+
+  by_dataset_list is {
+    group_by: referenced_tables.dataset_id
+  }
+
+  query: by_query is {
+    group_by: query_hash
+    aggregate: 
+      total_billed_gb
+      query_count  
+      percent_of_gb_billed
+    nest: 
+      by_email_list is {group_by: user_email}
+      by_dataset_list is {
+        group_by: referenced_tables.dataset_id 
+        where: referenced_tables.dataset_id != null
+      }
   }
 }
