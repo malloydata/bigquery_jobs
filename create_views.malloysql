@@ -1,0 +1,16 @@
+-- connection: bigquery
+-- import: "jobs.malloy"
+
+-- Queries grouped by their SQL expression
+create or replace view job_views.by_query as (%{
+  jobs -> by_query
+}%)
+
+;;;
+-- List of Email addresses and their data usage
+create or replace view job_views.by_email as (%{
+  jobs -> by_email
+}%)
+
+
+

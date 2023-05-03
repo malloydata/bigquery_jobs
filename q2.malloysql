@@ -1,0 +1,6 @@
+-- connection: bigquery
+
+SELECT * 
+FROM `malloy-303216.job_views.by_email` 
+LIMIT 1000
+
