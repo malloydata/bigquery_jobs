@@ -1,37 +1,23 @@
 --! connection: bigquery
 --! import: "jobs.malloy"
 
--- Queries grouped by their SQL expression
-create or replace view job_views.by_query as (%{
-  jobs -> by_query + {
-    group_by: sql_query
-    aggregate: 
-      max_slot_seconds is max(slot_seconds)
-      average_slot_seconds is avg(slot_seconds)
-    nest: referenced_tables is {
-      group_by: 
-        referenced_tables.dataset_id
-        referenced_tables.table_id
-    }
-  }
-}%)
-
-;;;
--- List of Email addresses and their data usage
 create or replace view job_views.by_email_date as (%{
   jobs -> by_email_date
 }%)
-
 ;;;
--- List of Email addresses and their data usage
+
 create or replace view job_views.by_dataset_date as (%{
   jobs -> by_dataset_date
 }%)
-
 ;;;
--- List of Email addresses and their data usage
+
 create or replace view job_views.by_table_date as (%{
   jobs -> by_table_date
+}%)
+;;;
+
+create or replace view job_views.query_analysis as (%{
+  jobs-> query_analysis
 }%)
 
 

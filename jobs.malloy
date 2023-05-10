@@ -1,5 +1,6 @@
 import "jobs_table.malloy"
 
+// # output_schema='job_views'
 source: jobs is jobs_table + {
   rename: 
     bytes_billed is total_bytes_billed
@@ -28,8 +29,6 @@ source: jobs is jobs_table + {
     percent_cached_query is query_count {? cache_hit} / nullif(query_count,0) * 100
     stage_count is timeline.count()
     percent_of_gb_billed is total_billed_gb/all(total_billed_gb)*100
-
-    
 
   query: cached is {
     group_by: cache_hit
@@ -92,20 +91,36 @@ source: jobs is jobs_table + {
       percent_cached_query
   }
 
+  // # view='by_dataset_date'
   query: by_dataset_date is by_date + {
     where: referenced_tables.dataset_id != null
     group_by: referenced_tables.dataset_id
   }
 
+  // # view='by_email_date'
   query: by_email_date is by_date + {
     where: user_email != null
     group_by: user_email
   }
 
+  // # view='by_table_date'
   query: by_table_date is by_date + {
     where: referenced_tables.table_id != null
     group_by: 
       referenced_tables.dataset_id
       referenced_tables.table_id
+  }
+
+  // # view='query_analysis'
+  query: query_analysis is by_query + {
+    group_by: sql_query
+    aggregate: 
+      max_slot_seconds is max(slot_seconds)
+      average_slot_seconds is avg(slot_seconds)
+    nest: referenced_tables is {
+      group_by: 
+        referenced_tables.dataset_id
+        referenced_tables.table_id
+    }
   }
 }
