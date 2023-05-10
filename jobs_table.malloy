@@ -1,1 +1,1 @@
-source: jobs_table is table('bigquery:malloy-303216.malloytest.info_schema_jobs')
+source: jobs_table is table('bigquery:job_views.info_schema_jobs')

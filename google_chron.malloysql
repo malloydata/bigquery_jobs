@@ -1,0 +1,15 @@
+--! conneciton: bigquery
+DECLARE MAX_TIME TIMESTAMP DEFAULT TIMESTAMP('2023-01-01');
+
+create schema if not exists job_views;
+create table if not exists job_views.info_schema_jobs as (select * from `region-us`.INFORMATION_SCHEMA.JOBS limit 0);
+
+SET MAX_TIME =  IFNULL((SELECT TIMESTAMP_ADD(MAX(creation_time), INTERVAL -10 minute) from job_views.info_schema_jobs),TIMESTAMP('2023-01-01')) ;
+
+merge into `job_views.info_schema_jobs` as j
+USING (select * from `region-us`.INFORMATION_SCHEMA.JOBS WHERE creation_time > MAX_TIME) as i
+ON 
+  concat(cast(j.creation_time as string), j.job_id) = 
+    concat(cast(i.creation_time as string), i.job_id)
+WHEN NOT MATCHED THEN
+  INSERT ROW
