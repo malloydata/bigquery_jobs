@@ -14,6 +14,7 @@ source: jobs is jobs_table + {
     slot_seconds is (slot_ms/1000)
     elapsed_seconds is (unix_millis(end_time)::number - unix_millis(start_time)::number)/1000
     query_hash is to_base64(md5(sql_query))::string
+    is_service_account is user_email ~ r'gserviceaccount'
 
   measure:
     job_count is count()
@@ -27,6 +28,7 @@ source: jobs is jobs_table + {
     percent_cached_query is query_count {? cache_hit} / nullif(query_count,0) * 100
     stage_count is timeline.count()
     percent_of_gb_billed is total_billed_gb/all(total_billed_gb)*100
+
     
 
   query: cached is {
@@ -76,5 +78,34 @@ source: jobs is jobs_table + {
         group_by: referenced_tables.dataset_id 
         where: referenced_tables.dataset_id != null
       }
+  }
+
+  query: by_date is {
+    group_by: 
+      query_date is start_time::date
+      is_service_account
+    aggregate: 
+      total_billed_gb
+      query_count
+      total_slot_minutes
+      user_count
+      percent_cached_query
+  }
+
+  query: by_dataset_date is by_date + {
+    where: referenced_tables.dataset_id != null
+    group_by: referenced_tables.dataset_id
+  }
+
+  query: by_email_date is by_date + {
+    where: user_email != null
+    group_by: user_email
+  }
+
+  query: by_table_date is by_date + {
+    where: referenced_tables.table_id != null
+    group_by: 
+      referenced_tables.dataset_id
+      referenced_tables.table_id
   }
 }

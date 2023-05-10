@@ -18,9 +18,20 @@ create or replace view job_views.by_query as (%{
 
 ;;;
 -- List of Email addresses and their data usage
-create or replace view job_views.by_email as (%{
-  jobs -> by_email
+create or replace view job_views.by_email_date as (%{
+  jobs -> by_email_date
 }%)
 
+;;;
+-- List of Email addresses and their data usage
+create or replace view job_views.by_dataset_date as (%{
+  jobs -> by_dataset_date
+}%)
+
+;;;
+-- List of Email addresses and their data usage
+create or replace view job_views.by_table_date as (%{
+  jobs -> by_table_date
+}%)
 
 
