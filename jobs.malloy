@@ -7,8 +7,7 @@ source: jobs is jobs_table + {
     bytes_processed is total_bytes_processed
     slot_ms is total_slot_ms
     sql_query is query
-
-
+    
   dimension: 
     billed_gb is bytes_billed / (1024*1024*1024)
     is_query is job_type = 'QUERY'
@@ -77,38 +76,6 @@ source: jobs is jobs_table + {
         group_by: referenced_tables.dataset_id 
         where: referenced_tables.dataset_id != null
       }
-  }
-
-  query: by_date is {
-    group_by: 
-      query_date is start_time::date
-      is_service_account
-    aggregate: 
-      total_billed_gb
-      query_count
-      total_slot_minutes
-      user_count
-      percent_cached_query
-  }
-
-  // # view='by_dataset_date'
-  query: by_dataset_date is by_date + {
-    where: referenced_tables.dataset_id != null
-    group_by: referenced_tables.dataset_id
-  }
-
-  // # view='by_email_date'
-  query: by_email_date is by_date + {
-    where: user_email != null
-    group_by: user_email
-  }
-
-  // # view='by_table_date'
-  query: by_table_date is by_date + {
-    where: referenced_tables.table_id != null
-    group_by: 
-      referenced_tables.dataset_id
-      referenced_tables.table_id
   }
 
   // # view='query_analysis'
