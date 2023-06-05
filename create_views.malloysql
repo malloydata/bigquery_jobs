@@ -1,4 +1,13 @@
 >>>malloy
+// Create View files for use in other tools
+//  Creates the following dimensional rollup view files:
+//    job_views.by_email_date 
+//    job_views.by_dataset_date 
+//    job_views.by_table_date
+//
+//  Creates view of most expensive queries
+//    job_views.query_analysis
+//
 import "jobs.malloy"
 
 // Refine the jobs view with queries for this transformation
