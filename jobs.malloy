@@ -1,6 +1,5 @@
 import "jobs_table.malloy"
 
-// # output_schema='job_views'
 source: jobs is jobs_table + {
   rename: 
     bytes_billed is total_bytes_billed
@@ -12,8 +11,8 @@ source: jobs is jobs_table + {
     billed_gb is bytes_billed / (1024*1024*1024)
     is_query is job_type = 'QUERY'
     slot_seconds is (slot_ms/1000)
-    elapsed_seconds is (unix_millis(end_time)::number - unix_millis(start_time)::number)/1000
-    query_hash is to_base64(md5(sql_query))::string
+    elapsed_seconds is (unix_millis!(end_time)::number - unix_millis!(start_time)::number)/1000
+    query_hash is to_base64!(md5!(sql_query))::string
     is_service_account is user_email ~ r'gserviceaccount'
 
   measure:
