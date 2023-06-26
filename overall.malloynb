@@ -32,7 +32,7 @@
   {
     "kind": 2,
     "language": "malloy",
-    "value": "query: jobs -> {\n  nest: queries_line_chart is {\n    group_by: `date` is start_time.week\n    aggregate:\n      query_count\n  }\n  nest: users_line_chart is {\n    group_by: `date` is start_time.week\n    aggregate:\n      user_count\n  }\n}",
+    "value": "query: jobs -> {\n  # line_chart\n  nest: queries is {\n    group_by: `date` is start_time.week\n    aggregate:\n      query_count\n  }\n  # line_chart\n  nest: users is {\n    group_by: `date` is start_time.week\n    aggregate:\n      user_count\n  }\n}",
     "metadata": {}
   },
   {
@@ -44,7 +44,7 @@
   {
     "kind": 2,
     "language": "malloy",
-    "value": "query: jobs -> {\n  nest: gb_billed_line_chart is {\n    group_by: `date` is start_time.week\n    aggregate:\n      total_billed_gb\n  }\n  nest: slot_time_line_chart is {\n    group_by: `date` is start_time.week\n    aggregate:\n      total_slot_seconds\n  }\n}",
+    "value": "query: jobs -> {\n  # line_chart\n  nest: gb_billed is {\n    group_by: `date` is start_time.week\n    aggregate:\n      total_billed_gb\n  }\n  # line_chart\n  nest: slot_time is {\n    group_by: `date` is start_time.week\n    aggregate:\n      total_slot_seconds\n  }\n}",
     "metadata": {}
   }
 ]

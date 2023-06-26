@@ -1,4 +1,4 @@
---! conneciton: bigquery
+>>>sql connection:bigquery
 DECLARE MAX_TIME TIMESTAMP DEFAULT TIMESTAMP('2023-01-01');
 
 create schema if not exists job_views;

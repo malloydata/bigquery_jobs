@@ -24,7 +24,8 @@ source: jobs is jobs_table + {
     total_slot_minutes is total_slot_seconds/60
     user_count is count(distinct user_email)
     time_range is concat(min(start_time)::date:: string, ' to ',  max(start_time)::date::string)
-    percent_cached_query is query_count {? cache_hit} / nullif(query_count,0) * 100
+    # percent
+    percent_cached_query is query_count {? cache_hit} / nullif(query_count,0)
     stage_count is timeline.count()
     percent_of_gb_billed is total_billed_gb/all(total_billed_gb)*100
 
