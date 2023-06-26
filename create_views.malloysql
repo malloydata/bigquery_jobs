@@ -1,69 +1,18 @@
 >>>malloy
-// Create View files for use in other tools
-//  Creates the following dimensional rollup view files:
-//    job_views.by_email_date 
-//    job_views.by_dataset_date 
-//    job_views.by_table_date
-//
-//  Creates view of most expensive queries
-//    job_views.query_analysis
-//
 import "jobs.malloy"
 
-// Refine the jobs view with queries for this transformation
-source: my_jobs is jobs + {
-  // common portion of the query for the below views
-  query: by_date is {
-    group_by: 
-      query_date is start_time::date
-      is_service_account
-    aggregate: 
-      total_billed_gb
-      query_count
-      total_slot_minutes
-      user_count
-      percent_cached_query
-  }
-}
-
 >>>sql connection:bigquery
-create or replace view job_views.by_email_date as (%{
-  // add email dimension to the query
-  my_jobs -> by_date + {
-    where: user_email != null
-    group_by: user_email
-  }
-}%)
+create or replace view job_views.by_email_date as %{jobs->email_date}%
 
->>>sql connection:bigquery
+>>>sql
+create or replace view job_views.by_dataset_date as %{jobs->dataset_date}%
 
-create or replace view job_views.by_dataset_date as (%{
-  my_jobs -> by_date + {
-    // add dataset dimensions to the query
-    where: referenced_tables.dataset_id != null
-    group_by: referenced_tables.dataset_id
-  }
-}%)
+>>>sql 
+create or replace view job_views.by_table_date as %{jobs->table_date}%
 
->>>sql connection:bigquery
-
-create or replace view job_views.by_table_date as (%{
-  // add dataset and table dimensions to the query
-  my_jobs -> by_date + {
-    where: referenced_tables.table_id != null
-    group_by: 
-      referenced_tables.dataset_id
-      referenced_tables.table_id
-  }
-}%)
-
->>>sql connection:bigquery
-
-create or replace view job_views.query_analysis as (%{
-  // this query is defined in the jobs model.
-  my_jobs-> query_analysis
-}%)
+>>>sql 
+create or replace view job_views.query_analysis as %{jobs->query_analysis}%
 
 
-/* >>>sql
-select * from job_views.query_analysis limit 10 */
+>>>sql
+select * from job_views.query_analysis limit 10

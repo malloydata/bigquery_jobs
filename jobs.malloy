@@ -71,8 +71,10 @@ source: jobs is jobs_table + {
       user_count
       percent_cached_query
     nest: 
-      by_email_list is {group_by: user_email}
-      by_dataset_list is {
+      # list
+      by_email is {group_by: user_email}
+      # list
+      by_dataset is {
         group_by: referenced_tables.dataset_id 
         where: referenced_tables.dataset_id != null
       }
@@ -89,5 +91,35 @@ source: jobs is jobs_table + {
         referenced_tables.dataset_id
         referenced_tables.table_id
     }
+  }
+
+  query: by_date is {
+    group_by: 
+      query_date is start_time::date
+      is_service_account
+    aggregate: 
+      total_billed_gb
+      query_count
+      total_slot_minutes
+      user_count
+      percent_cached_query
+  }
+
+  query: email_date is  by_date + {
+    where: user_email != null
+    group_by: user_email
+  }
+
+  query: dataset_date is by_date +  {
+    // add dataset dimensions to the query
+    where: referenced_tables.dataset_id != null
+    group_by: referenced_tables.dataset_id
+  }
+
+  query: table_date is by_date + {
+    where: referenced_tables.table_id != null
+    group_by: 
+      referenced_tables.dataset_id
+      referenced_tables.table_id
   }
 }
