@@ -2,17 +2,12 @@
 import "jobs.malloy"
 
 >>>sql connection:bigquery
-create or replace view job_views.by_email_date as %{jobs->email_date}%
+create or replace view job_views.by_email_date as %{jobs->email_date}%;
 
->>>sql
-create or replace view job_views.by_dataset_date as %{jobs->dataset_date}%
+create or replace view job_views.by_dataset_date as %{jobs->dataset_date}%;
 
->>>sql 
-create or replace view job_views.by_table_date as %{jobs->table_date}%
+create or replace view job_views.by_table_date as %{jobs->table_date}%;
 
->>>sql 
-create or replace view job_views.query_analysis as %{jobs->query_analysis}%
+create or replace view job_views.query_analysis as %{jobs->query_analysis}%;
 
-
->>>sql
-select * from job_views.query_analysis limit 10
+select * from job_views.query_analysis limit 10;
