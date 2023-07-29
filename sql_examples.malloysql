@@ -1,0 +1,24 @@
+>>>markdown
+# SQL Examples
+In [create_views.malloysql](create_views.malloysql) we created a several views in the database.  These views can be used by any tool that can run SQL (Connected Sheets, Looker, Looker Studio, Tableau).  
+
+Below are some simple queries that reference these views.  Notice that all the results returned are computed with the Malloy governed calculations.
+>>>markdown
+## lloyd's biggest days
+>>>sql
+-- connection:bigquery
+
+SELECT * 
+FROM `malloy-303216.job_views.by_email_date` 
+WHERE user_email like 'ltabb%'
+ORDER BY total_billed_gb DESC
+LIMIT 10
+>>>markdown
+## Carl's queries (and other users)
+>>>sql
+-- connection: bigquery
+
+SELECT * 
+FROM `malloy-303216.job_views.query_analysis` 
+where EXISTS (SELECT * FROM UNNEST(by_email) WHERE user_email LIKE 'carlineng%')
+LIMIT 10
