@@ -1,38 +1,14 @@
-[
-  {
-    "kind": 1,
-    "language": "markdown",
-    "value": "## Most Expensive Queries",
-    "metadata": {}
-  },
-  {
-    "kind": 2,
-    "language": "malloy",
-    "value": "import \"jobs.malloy\"\nquery: jobs->{ aggregate: time_range }",
-    "metadata": {}
-  },
-  {
-    "kind": 1,
-    "language": "markdown",
-    "value": "## By Query\nLook at the cost of queries by the total GB billed for each distinct query.  The query_hash is an MD5 hash of the SQL. ",
-    "metadata": {}
-  },
-  {
-    "kind": 2,
-    "language": "malloy",
-    "value": "query: jobs -> by_query",
-    "metadata": {}
-  },
-  {
-    "kind": 1,
-    "language": "markdown",
-    "value": "## By Bytes read",
-    "metadata": {}
-  },
-  {
-    "kind": 2,
-    "language": "malloy",
-    "value": "query: jobs->query_detail + {order_by: billed_gb desc, start_time desc}",
-    "metadata": {}
-  }
-]
+>>>markdown
+## Most Expensive Queries
+>>>malloy
+import "jobs.malloy"
+query: jobs->{ aggregate: time_range }
+>>>markdown
+## By Query
+Look at the cost of queries by the total GB billed for each distinct query.  The query_hash is an MD5 hash of the SQL. 
+>>>malloy
+query: jobs -> by_query
+>>>markdown
+## By Bytes read
+>>>malloy
+query: jobs->query_detail + {order_by: billed_gb desc, start_time desc}

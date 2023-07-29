@@ -1,18 +1,71 @@
+>>>markdown
+# INFORMATION_SCHEMA Job views
+Creates dataset `jobs_views` based on INFORMATION_SCHEMA.JOBS withthe following views:
+
+* **jobs_views.query_analysis** - Grouped by unique query.  Shows various totals, uses and caching.
+* **jobs_views.by_dataset_date** - Rollup by dataset and date
+* **jobs_views.by_table_date** - Rollup by table and date
+* **jobs_views.by_email_date** - Rollup by email and date
+
+`Run All` to create the views.  Re-running will update the views with new specifications.
 >>>malloy
 import "jobs.malloy"
 
->>>sql connection:bigquery
-create or replace view job_views.by_email_date as %{jobs->email_date}%
+source: jobs_views is jobs extend {
+    // # view='query_analysis'
+  query: query_analysis is by_query + {
+    group_by: sql_query
+    aggregate: 
+      max_slot_seconds is max(slot_seconds)
+      average_slot_seconds is avg(slot_seconds)
+    nest: referenced_tables is {
+      group_by: 
+        referenced_tables.dataset_id
+        referenced_tables.table_id
+    }
+  }
 
+  query: by_date is {
+    group_by: 
+      query_date is start_time::date
+      is_service_account
+    aggregate: 
+      total_billed_gb
+      query_count
+      total_slot_minutes
+      user_count
+      percent_cached_query
+  }
+
+  query: email_date is  by_date + {
+    where: user_email != null
+    group_by: user_email
+  }
+
+  query: dataset_date is by_date +  {
+    // add dataset dimensions to the query
+    where: referenced_tables.dataset_id != null
+    group_by: referenced_tables.dataset_id
+  }
+
+  query: table_date is by_date + {
+    where: referenced_tables.table_id != null
+    group_by: 
+      referenced_tables.dataset_id
+      referenced_tables.table_id
+  }
+} 
+>>>markdown
+### SQL Commands to create the views.
+They are listed separately so they can be individually tested.
 >>>sql
-create or replace view job_views.by_dataset_date as %{jobs->dataset_date}%
-
->>>sql 
-create or replace view job_views.by_table_date as %{jobs->table_date}%
-
->>>sql 
-create or replace view job_views.query_analysis as %{jobs->query_analysis}%
-
-
+-- connection: bigquery
+create schema if not exists jobs_views 
 >>>sql
-select * from job_views.query_analysis limit 10
+create or replace view job_views.by_email_date as %{jobs_views->email_date}%
+>>>sql
+create or replace view job_views.by_dataset_date as %{jobs_views->dataset_date}%  
+>>>sql
+create or replace view job_views.by_table_date as %{jobs_views->table_date}%
+>>>sql
+create or replace view job_views.query_analysis as %{jobs_views->query_analysis}%

@@ -1,38 +1,80 @@
-[
-  {
-    "kind": 1,
-    "language": "markdown",
-    "value": "# By User\nWhich users are doing what?",
-    "metadata": {}
-  },
-  {
-    "kind": 2,
-    "language": "malloy",
-    "value": "import \"jobs.malloy\"",
-    "metadata": {}
-  },
-  {
-    "kind": 1,
-    "language": "markdown",
-    "value": "## Basic User level Statistics",
-    "metadata": {}
-  },
-  {
-    "kind": 2,
-    "language": "malloy",
-    "value": "query: jobs -> {\n  group_by: user_email\n  aggregate: \n    total_billed_gb\n    percent_of_gb_billed is total_billed_gb/all(total_billed_gb)* 100\n    total_slot_minutes\n    query_count\n    percent_cached_query\n    time_range\n}",
-    "metadata": {}
-  },
-  {
-    "kind": 1,
-    "language": "markdown",
-    "value": "## Users in detail",
-    "metadata": {}
-  },
-  {
-    "kind": 2,
-    "language": "malloy",
-    "value": "query: jobs -> {\n  where: is_query\n  group_by: user_email\n  aggregate: \n    total_billed_gb\n    percent_of_gb_billed is total_billed_gb/all(total_billed_gb)* 100\n  nest: dataset_bytes_bar_chart is {\n    group_by: referenced_tables.dataset_id\n    aggregate: \n      total_billed_gb\n      query_count\n  }\n  nest: dataset_queries_bar_chart is {\n    where: referenced_tables.dataset_id != null\n    group_by: referenced_tables.dataset_id\n    aggregate: \n      query_count\n      total_billed_gb\n  }\n}\n// --! style dashboard",
-    "metadata": {}
+>>>markdown
+# By User
+Which users are doing what?
+>>>malloy
+import "jobs.malloy" 
+>>>markdown
+## Basic User level Statistics
+>>>malloy
+query: jobs -> {
+  group_by: user_email
+  aggregate: 
+    total_billed_gb
+    percent_of_gb_billed is total_billed_gb/all(total_billed_gb)* 100
+    total_slot_minutes
+    query_count
+    percent_cached_query
+    time_range
+}
+>>>markdown
+## Users in detail
+>>>malloy
+# dashboard
+run: jobs -> {
+  where: is_query
+  group_by: user_email
+  aggregate: 
+    total_billed_gb
+    percent_of_gb_billed
+    query_count
+  nest: dataset_bytes is {
+    group_by: referenced_tables.dataset_id
+    aggregate: 
+      total_billed_gb
+      percent_of_gb_billed
+      query_count
+   
+  } 
+  -> {
+    project: *
+    where: percent_of_gb_billed > 0.05
   }
-]
+  nest: dataset_queries is {
+    where: referenced_tables.dataset_id != null
+    group_by: referenced_tables.dataset_id
+    aggregate: 
+      query_count
+      percent_of_queries
+      total_billed_gb
+  }
+  -> {
+    project: *
+    where: percent_of_queries > 0.01 
+  }
+}
+>>>malloy
+run: jobs-> {
+    where: user_email = 'cbhagwat@google.com'
+    where: referenced_tables.dataset_id != null
+    group_by: referenced_tables.dataset_id
+    aggregate: 
+      query_count
+      percent_of_queries
+      total_billed_gb
+      
+}
+>>>malloy
+# dashboard
+run: jobs -> {
+  where: is_query
+  group_by: user_email
+  aggregate: 
+    query_count
+  nest: dataset_queries is {
+    where: referenced_tables.dataset_id != null
+    group_by: referenced_tables.dataset_id
+    aggregate: 
+      query_count
+      percent_of_queries
+  }
+}

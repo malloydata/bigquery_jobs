@@ -1,6 +1,0 @@
--- connection: bigquery
-
-SELECT * 
-FROM `malloy-303216.job_views.by_query` 
-where EXISTS (SELECT * FROM UNNEST(by_email_list) WHERE user_email LIKE 'carlineng%')
-LIMIT 1000
