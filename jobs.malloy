@@ -1,6 +1,6 @@
 import "jobs_table.malloy"
 
-source: jobs is jobs_table + {
+source: jobs is jobs_table extend {
   rename: 
     bytes_billed is total_bytes_billed
     bytes_processed is total_bytes_processed
@@ -17,27 +17,37 @@ source: jobs is jobs_table + {
 
   measure:
     job_count is count()
-    query_count is job_count {? is_query }
-    distinct_query_count is count(distinct sql_query)
+    query_count is job_count {where: is_query }
+    distinct_query_count is count(sql_query)
     total_billed_gb is billed_gb.sum()
     total_slot_seconds is slot_ms.sum()/1000
     total_slot_minutes is total_slot_seconds/60
-    user_count is count(distinct user_email)
+    user_count is count(user_email)
     time_range is concat(min(start_time)::date:: string, ' to ',  max(start_time)::date::string)
     # percent
-    percent_cached_query is query_count {? cache_hit} / nullif(query_count,0)
+    percent_cached_query is query_count {where: cache_hit} / nullif(query_count,0)
     stage_count is timeline.count()
     # percent
     percent_of_gb_billed is total_billed_gb/all(total_billed_gb)
     # percent
     percent_of_queries is query_count/all(query_count)
 
-  query: cached is {
+  view: metrics is {
+    aggregate:
+      total_billed_gb
+      percent_of_gb_billed
+      query_count  
+      total_slot_minutes
+      user_count
+      percent_cached_query
+  }
+
+  view: cached is {
     group_by: cache_hit
     aggregate: query_count, total_billed_gb
   }
 
-  query: query_detail is {
+  view: query_detail is {
     where: is_query
     group_by: 
       job_id
@@ -53,7 +63,7 @@ source: jobs is jobs_table + {
       stage_count
   }
 
-  query: by_email is {
+  view: by_email is {
     group_by: user_email
     aggregate: 
       # number ="#0.00"
@@ -61,11 +71,11 @@ source: jobs is jobs_table + {
       query_count 
   }
 
-  by_dataset_list is {
+  view: by_dataset_list is {
     group_by: referenced_tables.dataset_id
   }
 
-  query: by_query is {
+  view: by_query is {
     group_by: query_hash
     aggregate: 
       total_billed_gb
@@ -82,5 +92,31 @@ source: jobs is jobs_table + {
         group_by: referenced_tables.dataset_id 
         where: referenced_tables.dataset_id != null
       }
+  }
+
+  # line_chart
+  view: queries_over_time is {
+    group_by: `date` is start_time.week
+    aggregate:
+      query_count
+  }
+
+  # line_chart
+  view: users_over_time is {
+    group_by: `date` is start_time.week
+    aggregate:
+      user_count
+  }
+  # line_chart
+  view: gb_billed_over_time is {
+    group_by: `date` is start_time.week
+    aggregate:
+      total_billed_gb
+  }
+  # line_chart
+  view: slot_time_over_time is {
+    group_by: `date` is start_time.week
+    aggregate:
+      total_slot_seconds
   }
 }

@@ -1,50 +1,25 @@
-[
-  {
-    "kind": 1,
-    "language": "markdown",
-    "value": "# Overall Usage Statistics",
-    "metadata": {}
-  },
-  {
-    "kind": 2,
-    "language": "malloy",
-    "value": "import \"jobs.malloy\"",
-    "metadata": {}
-  },
-  {
-    "kind": 1,
-    "language": "markdown",
-    "value": "## Top Level Summary\n.. add some description ..",
-    "metadata": {}
-  },
-  {
-    "kind": 2,
-    "language": "malloy",
-    "value": "query: jobs -> {\n  aggregate: \n    time_range\n    total_billed_gb\n    total_slot_minutes\n    query_count\n    percent_cached_query\n    user_count\n}",
-    "metadata": {}
-  },
-  {
-    "kind": 1,
-    "language": "markdown",
-    "value": "## Queries and Users Over Time",
-    "metadata": {}
-  },
-  {
-    "kind": 2,
-    "language": "malloy",
-    "value": "query: jobs -> {\n  # line_chart\n  nest: queries is {\n    group_by: `date` is start_time.week\n    aggregate:\n      query_count\n  }\n  # line_chart\n  nest: users is {\n    group_by: `date` is start_time.week\n    aggregate:\n      user_count\n  }\n}",
-    "metadata": {}
-  },
-  {
-    "kind": 1,
-    "language": "markdown",
-    "value": "## Gigabytes and Slottime over Time",
-    "metadata": {}
-  },
-  {
-    "kind": 2,
-    "language": "malloy",
-    "value": "query: jobs -> {\n  # line_chart\n  nest: gb_billed is {\n    group_by: `date` is start_time.week\n    aggregate:\n      total_billed_gb\n  }\n  # line_chart\n  nest: slot_time is {\n    group_by: `date` is start_time.week\n    aggregate:\n      total_slot_seconds\n  }\n}",
-    "metadata": {}
-  }
-]
+>>>markdown
+# Overall Usage Statistics
+>>>malloy
+import "jobs.malloy"
+>>>markdown
+## Top Level Summary
+.. add some description ..
+>>>malloy
+run: jobs -> metrics
+>>>markdown
+## Queries and Users Over Time
+>>>malloy
+run: jobs -> {
+  nest: 
+    queries_over_time
+    users_over_time
+}
+>>>markdown
+## Gigabytes and Slottime over Time
+>>>malloy
+run: jobs -> {
+  nest: 
+    gb_billed_over_time
+    slot_time_over_time
+}

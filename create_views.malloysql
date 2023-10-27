@@ -13,7 +13,7 @@ import "jobs.malloy"
 
 source: jobs_views is jobs extend {
     // # view='query_analysis'
-  query: query_analysis is by_query + {
+  view: query_analysis is by_query + {
     group_by: sql_query
     aggregate: 
       max_slot_seconds is max(slot_seconds)
@@ -25,35 +25,30 @@ source: jobs_views is jobs extend {
     }
   }
 
-  query: by_date is {
+  view: by_date_fields is {
     group_by: 
       query_date is start_time::date
       is_service_account
-    aggregate: 
-      total_billed_gb
-      query_count
-      total_slot_minutes
-      user_count
-      percent_cached_query
-  }
+  } 
 
-  query: email_date is  by_date + {
+  view: by_date is by_date_fields + metrics
+
+  view: email_date is  by_date_fields + {
     where: user_email != null
     group_by: user_email
-  }
+  } + metrics
 
-  query: dataset_date is by_date +  {
-    // add dataset dimensions to the query
+  view: dataset_date is by_date_fields +  {
     where: referenced_tables.dataset_id != null
     group_by: referenced_tables.dataset_id
-  }
+  } + metrics
 
-  query: table_date is by_date + {
+  view: table_date is by_date_fields + {
     where: referenced_tables.table_id != null
     group_by: 
       referenced_tables.dataset_id
       referenced_tables.table_id
-  }
+  } + metrics
 } 
 >>>markdown
 ### SQL Commands to create the views.
