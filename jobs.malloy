@@ -1,4 +1,5 @@
-import "jobs_table.malloy"
+source: jobs_table is bigquery.table('job_views.info_schema_jobs')
+// import "jobs_table.malloy"
 
 source: jobs is jobs_table extend {
   rename: 
@@ -28,9 +29,9 @@ source: jobs is jobs_table extend {
     percent_cached_query is query_count {where: cache_hit} / nullif(query_count,0)
     stage_count is timeline.count()
     # percent
-    percent_of_gb_billed is total_billed_gb/all(total_billed_gb)
+    percent_of_gb_billed is total_billed_gb/nullif(all(total_billed_gb),0)
     # percent
-    percent_of_queries is query_count/all(query_count)
+    percent_of_queries is query_count/nullif(all(query_count),0)
 
   view: metrics is {
     aggregate:
