@@ -1,7 +1,6 @@
-source: jobs_table is bigquery.table('job_views.info_schema_jobs')
-// import "jobs_table.malloy"
+import { jobs_tbl, tables_tbl, table_storage_tbl } from 'config.malloy'
 
-source: jobs is jobs_table extend {
+source: jobs is jobs_tbl extend {
   rename: 
     bytes_billed is total_bytes_billed
     bytes_processed is total_bytes_processed
@@ -121,3 +120,48 @@ source: jobs is jobs_table extend {
       total_slot_seconds
   }
 }
+
+source: table_query_stats is jobs -> {
+  group_by:
+    referenced_tables.project_id
+    referenced_tables.dataset_id
+    referenced_tables.table_id
+} + metrics extend {}
+
+source: table_storage is table_storage_tbl extend {}
+
+source: tables is tables_tbl extend {
+  join_one: table_query_stats on
+    table_catalog = table_query_stats.project_id
+    and table_schema = table_query_stats.dataset_id
+    and table_name = table_query_stats.table_id
+
+  join_one: table_storage on
+    table_catalog = table_storage.project_id
+    and table_schema = table_storage.table_schema
+    and table_name = table_storage.table_name
+
+  view: metrics is {
+    aggregate:
+      total_logical_bytes is table_storage.total_logical_bytes.sum()
+      total_rows is table_storage.total_rows.sum()
+      total_billed_gb is table_query_stats.total_billed_gb.sum()
+      query_count is table_query_stats.query_count.sum()
+  }
+
+  view: table_usage_metrics is {
+    group_by:
+      table_name
+  } + metrics
+
+  view: hot_tables is table_usage_metrics + {
+    order_by: total_billed_gb desc
+    limit: 10
+  }
+
+  view: cold_tables is table_usage_metrics + {
+    order_by: total_billed_gb asc, total_logical_bytes desc
+    limit: 10
+  }
+}
+

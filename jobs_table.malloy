@@ -1,1 +1,0 @@
-source: jobs_table is bigquery.table('job_views.info_schema_jobs')
