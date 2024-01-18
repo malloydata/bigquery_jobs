@@ -1,0 +1,81 @@
+>>>markdown
+# Usage Dashboard
+>>>malloy
+import 'jobs.malloy'
+>>>markdown
+## Top Level Summary
+A quick glance at overall BigQuery usage, and usage over time
+>>>malloy
+# dashboard
+run: jobs -> {
+  nest:
+    metrics
+    queries_over_time
+    users_over_time
+    gb_billed_over_time
+    slot_time_over_time
+}
+>>>markdown
+## Look at "Hot" and "Cold" tables
+Which tables are queried most frequently? Which are large tables that don't see much querying, and could be candidates for cleanup?
+>>>malloy
+# dashboard
+run: tables -> {
+  group_by: table_schema
+}
++ metrics
++ {
+  order_by: total_billed_gb desc
+  limit: 5 
+}
++ {
+  nest: hot_tables
+  nest: cold_tables
+}
+>>>markdown
+## User-Level Details
+Show the top BigQuery users, and drill down into what datasets they are most frequently querying from.
+>>>malloy
+# dashboard
+run: jobs -> {
+  where: is_query
+  group_by: user_email
+  aggregate: 
+    total_billed_gb
+    percent_of_gb_billed
+    query_count
+
+  nest: dataset_bytes is {
+    group_by: referenced_tables.dataset_id
+    aggregate: 
+      total_billed_gb
+      percent_of_gb_billed
+      query_count
+    } -> {
+      select: *
+      where: percent_of_gb_billed > 0.05
+    }
+
+  nest: dataset_queries is {
+    where: referenced_tables.dataset_id != null
+    group_by: referenced_tables.dataset_id
+    aggregate: 
+      query_count
+      percent_of_queries
+      total_billed_gb
+  } -> {
+    select: *
+    where: percent_of_queries > 0.01 
+  }
+  limit: 10
+}
+>>>markdown
+## Most Expensive Queries
+
+Take a look at the most expensive queries in the last 30 days
+>>>malloy
+run: jobs -> query_detail + {
+  where: start_time > now - 30 days
+  order_by: billed_gb desc
+  limit: 10
+}

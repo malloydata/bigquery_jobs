@@ -1,0 +1,3 @@
+source: jobs_tbl is bigquery.sql('SELECT * FROM job_views.info_schema_jobs')
+source: tables_tbl is bigquery.sql('SELECT * FROM job_views.info_schema_tables')
+source: table_storage_tbl is bigquery.sql('SELECT * FROM job_views.info_schema_table_storage')
